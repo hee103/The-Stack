@@ -50,7 +50,15 @@ public class TheStack : MonoBehaviour
     {
         if(Input.GetMouseButtonDown(0))
         {
-            Spawn_Block();
+            if(PlaceBlock())
+            {
+                Spawn_Block();
+            }
+            else
+            {
+                Debug.Log("GameOver");
+            }
+            
         }
         MoveBlock();
         transform.position = Vector3.Lerp(transform.position, desiredPosition, StackMovingSpeed*Time.deltaTime);
@@ -136,5 +144,90 @@ public class TheStack : MonoBehaviour
             lastBlock.localPosition = new Vector3(secondaryPosition, stackcount, -movePosition * MovingBoundSize);
 
         }
+    }
+
+    bool PlaceBlock()
+    {
+        Vector3 lastPositon = lastBlock.localPosition;
+        if(isMovingX)
+        {
+            float deltax = prevBlockPosition.x - lastPositon.x; // 잘려나가는 크기
+            bool isNegativeNum = (deltax<0)? true : false; 
+
+
+            deltax = Mathf.Abs(deltax);
+            if (deltax > ErrorMargin)
+            {
+                stackBounds.x -= deltax;
+                if(stackBounds.x <=0)
+                {
+                    return false;
+                }
+                float middle = (prevBlockPosition.x + lastPositon.x) / 2f;
+                lastBlock.localScale = new Vector3(stackBounds.x,1,stackBounds.y);
+
+                Vector3 temPosition = lastBlock.localPosition;
+                temPosition.x = middle;
+                lastBlock.localPosition = lastPositon = temPosition;
+
+                float rubbleHalfScale = deltax / 2f;
+                CreateRubble(
+                    new Vector3(isNegativeNum? lastPositon.x+ stackBounds.x / 2 + rubbleHalfScale:
+                    lastPositon.x -stackBounds.x / 2 - rubbleHalfScale, lastPositon.y, lastPositon.z),new Vector3(deltax,1,stackBounds.y));
+            }
+            else
+            {
+                lastBlock.localPosition = prevBlockPosition + Vector3.up;
+            }
+
+        }
+        else
+        {
+            float deltaZ = prevBlockPosition.z - lastPositon.z;
+            bool isNegativeNum = (deltaZ < 0) ? true : false;
+
+            deltaZ = Mathf.Abs(deltaZ);
+            if (deltaZ > ErrorMargin)
+            {
+                stackBounds.y -= deltaZ;
+                if(stackBounds.y <=0)
+
+                {
+                    return false;
+                }
+                float middle = (prevBlockPosition.z + lastPositon.z) / 2f;
+                lastBlock.localScale = new Vector3(stackBounds.x, 1, stackBounds.y);
+
+                Vector3 tempPosition = lastBlock.localPosition;
+                tempPosition.z = middle;
+                lastBlock.localPosition =lastPositon =tempPosition;
+
+                float rubbleHalfScale = deltaZ / 2f;
+                CreateRubble(
+                    new Vector3(lastPositon.x, lastPositon.y,isNegativeNum ? lastPositon.z + stackBounds.y / 2 + rubbleHalfScale :
+                    lastPositon.z - stackBounds.y / 2 - rubbleHalfScale ), new Vector3(stackBounds.x,1,deltaZ));
+
+            }
+            else
+            {
+                lastBlock.localPosition = prevBlockPosition + Vector3.up;
+            }
+        }
+        secondaryPosition = (isMovingX) ? lastBlock.localPosition.x : lastBlock.localPosition.z;
+        return true;
+    }
+
+    void CreateRubble(Vector3 pos, Vector3 scale)
+    {
+        GameObject go = Instantiate(lastBlock.gameObject);
+        go.transform.parent = this.transform;
+
+        go.transform.localPosition = pos;
+        go.transform.localScale = pos;
+        go.transform.localRotation = Quaternion.identity;
+
+        go.AddComponent<Rigidbody>();
+        go.name = "Rubble";
+
     }
 }
