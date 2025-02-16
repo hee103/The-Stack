@@ -25,7 +25,8 @@ public class TheStack : MonoBehaviour
 
     public Color prevColor;
     public Color nextColor;
-   
+
+    bool isMovingX = true; //이동 방향에 따라서 X축과 Z축으로 이동하기 위해
 
     // Start is called before the first frame update
     void Start()
@@ -41,6 +42,7 @@ public class TheStack : MonoBehaviour
 
         prevBlockPosition = Vector3.down;
         Spawn_Block();
+        Spawn_Block();
     }
 
     // Update is called once per frame
@@ -50,6 +52,7 @@ public class TheStack : MonoBehaviour
         {
             Spawn_Block();
         }
+        MoveBlock();
         transform.position = Vector3.Lerp(transform.position, desiredPosition, StackMovingSpeed*Time.deltaTime);
     }
 
@@ -85,6 +88,7 @@ public class TheStack : MonoBehaviour
 
         lastBlock = newTrans;
 
+        isMovingX = !isMovingX;
         return true;
 
     }
@@ -114,6 +118,23 @@ public class TheStack : MonoBehaviour
         {
             prevColor = nextColor;
             nextColor = GetRandomColor();
+        }
+    }
+
+    void MoveBlock()
+    {
+        blockTransition += Time.deltaTime * BloxkMaovingSpeed;
+        float movePosition = Mathf.PingPong(blockTransition, BoundSize) - BoundSize / 3; // 0부터 우리가 지정해준 사이즈까지를 순환하는 값
+        
+        if(isMovingX)
+        {
+            lastBlock.localPosition = new Vector3(movePosition*MovingBoundSize,stackcount,secondaryPosition);   
+
+        }
+        else
+        {
+            lastBlock.localPosition = new Vector3(secondaryPosition, stackcount, -movePosition * MovingBoundSize);
+
         }
     }
 }
